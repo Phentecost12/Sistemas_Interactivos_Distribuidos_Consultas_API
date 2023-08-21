@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Entrega_02/HTTP_REGISTER.unity
+    guid: 9841de4822b1b8f43a4815dc3cb22cdc
+  - enabled: 1
+    path: Assets/Entrega_02/HTTP_LOGIN.unity
+    guid: 13951284f5652d345ae6ad29d25a3966
+  - enabled: 1
+    path: Assets/Entrega_02/HTTP_GAME.unity
+    guid: a3fe9656cba5f24469f439e9fca3d181
   m_configObjects: {}

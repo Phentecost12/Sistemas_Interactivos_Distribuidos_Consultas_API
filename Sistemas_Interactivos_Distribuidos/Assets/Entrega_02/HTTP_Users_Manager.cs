@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 using TMPro;
 using System.Linq;
+using System.Net.Cache;
+using UnityEngine.SceneManagement;
 
 public class HTTP_Users_Manager : MonoBehaviour
 {
@@ -14,30 +16,25 @@ public class HTTP_Users_Manager : MonoBehaviour
 
     private string HTTP_Login_token;
     private string HTTP_Login_username;
+    private UI_Scene_Manager Instance;
     // Start is called before the first frame update
     void Start()
     {
+        int i = SceneManager.GetActiveScene().buildIndex;
+        HTTP_Login_username = PlayerPrefs.GetString("username");
         HTTP_Login_token = PlayerPrefs.GetString("token");
+        Instance = UI_Scene_Manager.Instance;
 
-        if (string.IsNullOrEmpty(HTTP_Login_token))
+        if( i != 2)
         {
-            Debug.Log("No hay ninguna sesion activa");
-        }
-        else
-        {
-            HTTP_Login_username = PlayerPrefs.GetString("username");
-            StartCoroutine(GetPerfil(HTTP_Login_username));
-        }
-
-       
-    }
-
-    void Update()
-    {
-        if(Input.GetKeyDown( KeyCode.B))
-        {
-            Debug.Log(PlayerPrefs.GetString("token"));
-            Debug.Log(PlayerPrefs.GetString("username"));
+            if (string.IsNullOrEmpty(HTTP_Login_token))
+            {
+                Debug.Log("No hay ninguna sesion activa");
+            }
+            else
+            {
+                StartCoroutine(GetPerfil(HTTP_Login_username));
+            }
         }
     }
  
@@ -64,7 +61,6 @@ public class HTTP_Users_Manager : MonoBehaviour
         string json = JsonUtility.ToJson(data);
 
         StartCoroutine(SendLogin(json));
-        StartCoroutine(GetAllUsers());
     }
 
     public void SetNewScore()
@@ -80,8 +76,24 @@ public class HTTP_Users_Manager : MonoBehaviour
         
     }
 
- 
+    public void GetAllUsers()
+    {
+        if(!string.IsNullOrEmpty(HTTP_Login_token))
+        {
+            StartCoroutine(GetUsers());
+        }
+    }
 
+    public void CloseSecion()
+    {
+        Instance.Game_To_Login(HTTP_Login_username);
+        HTTP_Login_token = string.Empty;
+        HTTP_Login_username = string.Empty;
+
+        PlayerPrefs.SetString("username", string.Empty);
+        PlayerPrefs.SetString("token", string.Empty);
+    }
+ 
     IEnumerator SendRegister(string json) 
     {
         UnityWebRequest request = UnityWebRequest.Put(Data_Base + "usuarios",json);
@@ -99,6 +111,7 @@ public class HTTP_Users_Manager : MonoBehaviour
             {
                 User_Token data = JsonUtility.FromJson<User_Token>(request.downloadHandler.text);
                 Debug.Log("Se Registro usuario con id " + data.usuario._id);
+                Instance.Register_To_Login(data.usuario.username, data.usuario._id);
             }
             else
             {
@@ -128,6 +141,11 @@ public class HTTP_Users_Manager : MonoBehaviour
                 Debug.Log("Inicio sesion usuario  " + data.usuario.username);
                 PlayerPrefs.SetString("token", data.token);
                 PlayerPrefs.SetString("username", data.usuario.username);
+
+                HTTP_Login_username = data.usuario.username;
+                HTTP_Login_token = data.token;
+
+                Instance.Login_To_Game(data.usuario.username,data.usuario._id);
             }
             else
             {
@@ -155,6 +173,7 @@ public class HTTP_Users_Manager : MonoBehaviour
                 User_Token data = JsonUtility.FromJson<User_Token>(request.downloadHandler.text);
                 Debug.Log("Se inicio sesion con el usuario: " + data.usuario.username);
                 Debug.Log(data.usuario.data.score);
+                Instance.Login_To_Game(data.usuario.username,data.usuario._id);
             }
             else
             {
@@ -163,10 +182,11 @@ public class HTTP_Users_Manager : MonoBehaviour
         }
     }
 
-    IEnumerator GetAllUsers()
+    IEnumerator GetUsers()
     {
         UnityWebRequest request = UnityWebRequest.Get(Data_Base + "usuarios");
         request.SetRequestHeader("x-token",HTTP_Login_token);
+        Debug.Log("XD");
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.ConnectionError)
@@ -179,12 +199,9 @@ public class HTTP_Users_Manager : MonoBehaviour
             if(request.responseCode == 200)
             {
                 UserList users = JsonUtility.FromJson<UserList>(request.downloadHandler.text);
-                users.usuarios.OrderByDescending(u=> u.data.score);
+                UserData[] users_to_send = users.usuarios.OrderByDescending(u=> u.data.score).ToArray();
 
-                foreach (UserData user in users.usuarios)
-                {
-                    Debug.Log(user.username + " tiene un puntaje de: " + user.data.score);
-                }
+                Instance.Score_Panel_Activation(users_to_send);
             }
             else
             {
