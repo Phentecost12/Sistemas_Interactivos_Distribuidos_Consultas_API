@@ -10,9 +10,9 @@ public class UI_Scene_Manager : MonoBehaviour
 {
     public static UI_Scene_Manager Instance {get; private set;} = null;
 
-    [SerializeField] private RectTransform Register_To_Login_Panel,Login_To_Game_Panel, Score_Panel,Main_Panel,Game_Panel,Exit_Sesion_Panel,UI_Center,UI_Rigth,UI_Left,FadeOute, FadeOute_Final;
-    [SerializeField] private UI_Content Register_To_Login_Panel_Content, Login_To_Game_Panel_Content, Score_Panel_Content, Exit_Sesion_Panel_Content;
-    private bool _game,_score,_main;
+    [SerializeField] private RectTransform Register_To_Login_Panel,Login_To_Game_Panel, Score_Panel,Main_Panel,Game_Panel,End_Panel,Exit_Sesion_Panel,UI_Center,UI_Rigth,UI_Left,FadeOute, FadeOute_Final;
+    [SerializeField] private UI_Content Register_To_Login_Panel_Content, Login_To_Game_Panel_Content, Score_Panel_Content, Exit_Sesion_Panel_Content, End_Panel_Content;
+    private bool _game,_score,_main,_end;
 
     void Awake()
     {
@@ -97,6 +97,22 @@ public class UI_Scene_Manager : MonoBehaviour
         {
             Game_Panel.gameObject.SetActive(true);
             _game = true;
+        }
+    }
+
+    public void End_Panel_Activate( int i)
+    {
+        if(_end)
+        {
+            End_Panel.gameObject.SetActive(false);
+            _end = false;
+            
+        }
+        else
+        {
+            End_Panel.gameObject.SetActive(true);
+            End_Panel_Content._content[0].text = i.ToString();
+            _end = true;
         }
     }
 

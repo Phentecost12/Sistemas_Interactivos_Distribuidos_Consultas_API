@@ -48,15 +48,12 @@ public class Enemy_Spawn_System : MonoBehaviour
     [SerializeField] private bool _esmad_Pool_Collection_Check;
     private ObjectPool<Esmad> _esmad_Pool;
 
-    private List<Enemy> _spawned_Enemy_Wave;
-    private bool _active_Wave = false;
-
+    private List<Enemy> spawned_Enemies;
     public static Enemy_Spawn_System Instance {get; private set;} = null;
-    public static event Action OnWaveEnd;
 
     public TextMeshProUGUI text;
-    private int puntaje= 0;
-
+    private int puntaje = 0;
+    public HTTP_Users_Manager HTTP;
     void Awake()
     {
         if(Instance != null)
@@ -119,123 +116,42 @@ public class Enemy_Spawn_System : MonoBehaviour
         }, esmad=> {
             Destroy(esmad.gameObject);
         },_esmad_Pool_Collection_Check, _esmad_Pool_Default_Capacity, _esmad_Pool_Max_Capacity);
-        
-        _spawned_Enemy_Wave = new List<Enemy>();
 
-        //Fill_Pools();
+        spawned_Enemies = new List<Enemy>();
 
         text.text = "Points: " + puntaje;
     }
 
-    void Update()
+
+    public void SpawnWave ()
     {
-        if(!_active_Wave) return;
 
-        if(_spawned_Enemy_Wave.Count <= 0)
-        {
-            Debug.Log("Ronda Terminada");
-            OnWaveEnd();
-            _active_Wave = false;
-        }
-    }
+        var enemy_Bachitombo = _bachitombo_Pool.Get();
+        enemy_Bachitombo.Config(OnDeath,OnReach);
+        spawned_Enemies.Add(enemy_Bachitombo);
 
-    void Fill_Pools()
-    {
-        for (int i = 0; i<_bachitombo_Pool_Default_Capacity;i++)
-        {
-            var enemy = _bachitombo_Pool.Get();
-            _bachitombo_Pool.Release(enemy);
-        }
+        var enemy_Tombo = _tombo_Pool.Get();
+        enemy_Tombo.Config(OnDeath,OnReach);
+        spawned_Enemies.Add(enemy_Tombo);
 
-        for (int j = 0; j< _tombo_Pool_Default_Capacity;j++)
-        {
-            var enemy = _tombo_Pool.Get();
-            _tombo_Pool.Release(enemy);
-        }
+        var enemy_Tactico = _tombo_Tactico_Pool.Get();
+        enemy_Tactico.Config(OnDeath,OnReach);
+        spawned_Enemies.Add(enemy_Tactico);
 
-        for (int k = 0; k< _tombo_Tactico_Pool_Default_Capacity;k++)
-        {
-            var enemy = _tombo_Tactico_Pool.Get();
-            _tombo_Tactico_Pool.Release(enemy);
-        }
+        var enemy_Perro = _tombo_Con_Pero_Pool.Get();
+        enemy_Perro.Config(OnDeath,OnReach);
+        spawned_Enemies.Add(enemy_Perro);
 
-        for (int l = 0; l< _tombo_Con_Pero_Pool_Default_Capacity;l++)
-        {
-            var enemy = _tombo_Con_Pero_Pool.Get();
-            _tombo_Con_Pero_Pool.Release(enemy);
-        }
+        var enemy = _esmad_Pool.Get();
+        enemy.Config(OnDeath,OnReach);
+        spawned_Enemies.Add(enemy);
 
-        for (int m = 0; m< _esmad_Pool_Default_Capacity;m++)
-        {
-            var enemy = _esmad_Pool.Get();
-            _esmad_Pool.Release(enemy);
-        }
-    }
-
-    public IEnumerator SpawnWave (Wave wave)
-    {
-        
-        if(wave._bachitombo_Count >0)
-        {
-            for (int i = 0; i< wave._bachitombo_Count;i++)
-            {
-                var enemy = _bachitombo_Pool.Get();
-                _spawned_Enemy_Wave.Add(enemy);
-                enemy.Config(OnDeath,OnReach);
-                yield return new WaitForSeconds(0.2f);
-            }
-        }
-
-        if(wave._tombo_Count >0)
-        {
-            for (int i = 0; i< wave._tombo_Count;i++)
-            {
-                var enemy = _tombo_Pool.Get();
-                _spawned_Enemy_Wave.Add(enemy);
-                enemy.Config(OnDeath,OnReach);
-                yield return new WaitForSeconds(0.2f);
-            }
-        }
-
-        if(wave._tombo_Tactico_Count >0)
-        {
-            for (int i = 0; i< wave._tombo_Tactico_Count;i++)
-            {
-                var enemy = _tombo_Tactico_Pool.Get();
-                _spawned_Enemy_Wave.Add(enemy);
-                enemy.Config(OnDeath,OnReach);
-                yield return new WaitForSeconds(0.2f);
-            }
-        }
-
-        if(wave._tombo_Con_Perro_Count >0)
-        {
-            for (int i = 0; i< wave._tombo_Con_Perro_Count;i++)
-            {
-                var enemy = _tombo_Con_Pero_Pool.Get();
-                _spawned_Enemy_Wave.Add(enemy);
-                enemy.Config(OnDeath,OnReach);
-                yield return new WaitForSeconds(0.2f);
-            }
-        }
-
-        if(wave._esmad_Count >0)
-        {
-            for (int i = 0; i< wave._esmad_Count;i++)
-            {
-                var enemy = _esmad_Pool.Get();
-                _spawned_Enemy_Wave.Add(enemy);
-                enemy.Config(OnDeath,OnReach);
-                yield return new WaitForSeconds(0.2f);
-            }
-        }
-        _active_Wave = true;
     }
 
     private void OnDeath(Enemy enemy, int i)
     {
         puntaje += i;
-        text.text = "Points: " + puntaje;
+        text.text = "Score: " + puntaje;
 
         RemoveEnemy(enemy);
     }
@@ -247,12 +163,28 @@ public class Enemy_Spawn_System : MonoBehaviour
 
     private void RemoveEnemy(Enemy enemy)
     {
-        _spawned_Enemy_Wave.Remove(enemy);
         if(enemy is Bachitombo){_bachitombo_Pool.Release((Bachitombo)enemy);}
         else if (enemy is Tombo){_tombo_Pool.Release((Tombo)enemy);}
         else if (enemy is Tombo_Tactico){_tombo_Tactico_Pool.Release((Tombo_Tactico)enemy);}
         else if (enemy is Tombo_Con_Perro){_tombo_Con_Pero_Pool.Release((Tombo_Con_Perro)enemy);}
         else if (enemy is Esmad){_esmad_Pool.Release((Esmad)enemy);}
+    }
+
+    public void RemoveAllEnemy()
+    {
+        foreach(Enemy enemy in spawned_Enemies)
+        {
+            if(enemy is Bachitombo){_bachitombo_Pool.Release((Bachitombo)enemy);}
+            else if (enemy is Tombo){_tombo_Pool.Release((Tombo)enemy);}
+            else if (enemy is Tombo_Tactico){_tombo_Tactico_Pool.Release((Tombo_Tactico)enemy);}
+            else if (enemy is Tombo_Con_Perro){_tombo_Con_Pero_Pool.Release((Tombo_Con_Perro)enemy);}
+            else if (enemy is Esmad){_esmad_Pool.Release((Esmad)enemy);}
+        }
+
+        HTTP.SetNewScore(puntaje);
+
+        UI_Scene_Manager.Instance.Game_Panel_Activate();
+        UI_Scene_Manager.Instance.End_Panel_Activate(puntaje);
     }
 }
 

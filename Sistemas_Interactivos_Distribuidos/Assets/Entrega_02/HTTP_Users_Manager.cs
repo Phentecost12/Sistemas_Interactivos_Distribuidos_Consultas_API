@@ -63,12 +63,12 @@ public class HTTP_Users_Manager : MonoBehaviour
         StartCoroutine(SendLogin(json));
     }
 
-    public void SetNewScore()
+    public void SetNewScore(int score)
     {
         User_Registry_Score data = new User_Registry_Score();
         data.username = HTTP_Login_username;
         data.data = new Data();
-        data.data.score = int.Parse(ScoreInputField.text);
+        data.data.score = score;
 
         string json = JsonUtility.ToJson(data);
 

@@ -8,11 +8,13 @@ public class Wave_Manager : MonoBehaviour
 {
     public static Wave_Manager Instance {get;private set;} = null;
 
-    private int _wave_Index = 0;
-
-    private Wave _wave;
-
     public TextMeshProUGUI txt;
+
+    private float PLayTime = 120;
+
+    private float timer;
+
+    private bool Playing = false;
 
     void Awake()
     {
@@ -23,52 +25,37 @@ public class Wave_Manager : MonoBehaviour
         }
 
         Instance = this;
-
-        _wave = new Wave();
     }
 
-    void Start()
+    void Update()
     {
-        Enemy_Spawn_System.OnWaveEnd += OnWaveEnds;
+        if(!Playing) return;
+
+        if(timer <= 0)
+        {
+            Playing = false;
+            CancelInvoke();
+            Enemy_Spawn_System.Instance.RemoveAllEnemy();
+            txt.text = "Time: 0";
+        }
+        else
+        {
+            timer -= Time.deltaTime;
+            txt.text = "Time: " + MathF.Round(timer).ToString();
+        }
     }
 
     public void startGame()
     {
-        StartCoroutine(NextWave());
-    }
-
-    void OnDisable()
-    {
-        Enemy_Spawn_System.OnWaveEnd -= OnWaveEnds;
+        timer = PLayTime;
+        Playing = true;
+        InvokeRepeating("StartWave",0.2f,0.2f);
     }
 
     void StartWave()
     {
-        _wave_Index++;
-        txt.text = "Round: " + _wave_Index;
-        Increase_Dificulty();
-        StartCoroutine(Enemy_Spawn_System.Instance.SpawnWave(_wave));
+        Enemy_Spawn_System.Instance.SpawnWave();
     }
 
-    void OnWaveEnds()
-    {
-        StartCoroutine(NextWave());
-    }
 
-    IEnumerator NextWave()
-    {
-        yield return new WaitForSeconds(2);
-        StartWave();
-    }
-
-    void Increase_Dificulty()
-    {
-        _wave._bachitombo_Count = _wave_Index;
-        _wave._tombo_Count = _wave_Index;
-        _wave._tombo_Tactico_Count = _wave_Index;
-        _wave._tombo_Con_Perro_Count = _wave_Index;
-        _wave._esmad_Count = _wave_Index;
-
-        //Aumentar la dificultad
-    }
 }
