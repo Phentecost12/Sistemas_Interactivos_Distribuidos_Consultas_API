@@ -27,10 +27,8 @@ public class UI_Scene_Manager : MonoBehaviour
 
     void Start()
     {
-        Sequence fade_Sequence = DOTween.Sequence();
 
-        fade_Sequence.PrependInterval(1)
-        .Append(FadeOute.DOMove(FadeOute_Final.position,1));
+        FadeOute.DOMove(FadeOute_Final.position,1);
         
         _game = false;
         _score = false;

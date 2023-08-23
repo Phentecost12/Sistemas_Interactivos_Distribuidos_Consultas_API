@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3de11aad36e1854ba08ebedde0bc143, type: 3}
   m_Name: Tombo_Tactico
   m_EditorClassIdentifier: 
-  speed: 5
+  speed: 10
   door_Damage: 0
   Life: 1
   damage_To_Player: 1
-  path_Index: 1
-  points: 1
+  path_Index: 4
+  points: 10

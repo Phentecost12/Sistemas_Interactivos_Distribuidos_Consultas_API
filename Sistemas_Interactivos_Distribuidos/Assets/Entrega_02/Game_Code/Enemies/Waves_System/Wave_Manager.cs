@@ -10,7 +10,7 @@ public class Wave_Manager : MonoBehaviour
 
     public TextMeshProUGUI txt;
 
-    private float PLayTime = 120;
+    private float PLayTime = 10;
 
     private float timer;
 
@@ -49,7 +49,7 @@ public class Wave_Manager : MonoBehaviour
     {
         timer = PLayTime;
         Playing = true;
-        InvokeRepeating("StartWave",0.2f,0.2f);
+        InvokeRepeating("StartWave",0.2f,1);
     }
 
     void StartWave()
